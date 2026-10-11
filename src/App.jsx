@@ -259,22 +259,18 @@ export default function App() {
     showToast("تم تنزيل النسخة الاحتياطية data.json");
   };
 
-  const handleImportData = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const importedData = JSON.parse(event.target.result);
-        setData(importedData);
-        showToast("تم استيراد كافة بياناتك وصورك بنجاح!");
-      } catch (err) {
-        showToast("تعذر قراءة الملف المرفوع", "error");
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
-  };
+ const handleExportData = () => {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.href = url;
+  downloadAnchor.download = `data.json`;
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+  URL.revokeObjectURL(url);
+  showToast("تم تنزيل النسخة الاحتياطية data.json بنجاح");
+};
 
   const saveProject = () => {
     if (!selectedProject.title) return showToast("يرجى إدخال عنوان للمشروع", "warning");
