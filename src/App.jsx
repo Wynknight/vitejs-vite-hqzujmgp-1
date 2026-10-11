@@ -452,4 +452,384 @@ export default function App() {
                 استيراد البيانات من ملف محفوظ
               </button>
 
-              <input type="file
+              <input type="file" ref={importFileRef} onChange={handleImportData} accept=".json" className="hidden" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* المحتوى الأساسي */}
+      <main className="pb-24">
+        
+        {/* 1. قسم البداية (Hero) */}
+        {(data.settings?.sections?.hero !== false || isEditMode) && (
+          <section className={`relative min-h-[85vh] flex flex-col justify-center items-center text-center px-6 overflow-hidden pt-20 ${data.settings?.sections?.hero === false ? 'section-hidden' : ''}`}>
+            
+            {data.settings?.heroBgImage ? (
+              <>
+                <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${data.settings.heroBgImage})` }}></div>
+                <div className="absolute inset-0 bg-[#070707]/80 backdrop-blur-[2px]"></div>
+              </>
+            ) : (
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent opacity-[0.05] blur-[150px] rounded-full pointer-events-none"></div>
+            )}
+
+            {isEditMode && (
+              <div className="absolute top-6 right-6 z-20">
+                <button onClick={() => toggleSection('hero')} className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border ${data.settings?.sections?.hero !== false ? 'bg-neutral-900/80 text-white border-white/20' : 'bg-red-500 text-white border-red-400'}`}>
+                  {data.settings?.sections?.hero !== false ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />} {data.settings?.sections?.hero !== false ? 'إخفاء القسم' : 'إظهار القسم'}
+                </button>
+              </div>
+            )}
+
+            <div className="relative z-10 max-w-5xl mx-auto space-y-6">
+              <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-white/10 bg-black/50 backdrop-blur-md mb-2 shadow-xl">
+                <span className="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+                <ContentEditable tagName="span" html={data.profile?.title} onChange={(val) => updateProfile('title', val)} isEditMode={isEditMode} placeholder="المسمى الوظيفي" className="text-accent text-xs md:text-sm font-semibold tracking-wider uppercase inline-block" />
+              </div>
+              
+              <h1 className="text-5xl md:text-8xl font-black tracking-tight leading-tight py-2">
+                <ContentEditable tagName="div" html={data.profile?.name} onChange={(val) => updateProfile('name', val)} isEditMode={isEditMode} placeholder="الاسم هنا" className="inline-block w-full text-center rounded-xl" />
+              </h1>
+              
+              <div className="text-base md:text-2xl opacity-80 max-w-3xl mx-auto leading-relaxed font-light mt-6 px-4">
+                <ContentEditable tagName="div" html={data.profile?.bio} onChange={(val) => updateProfile('bio', val)} isEditMode={isEditMode} placeholder="اكتب نبذة تعريفية..." />
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* 2. معرض الأعمال */}
+        {(data.settings?.sections?.portfolio !== false || isEditMode) && (
+          <section className={`py-16 md:py-24 px-6 container mx-auto max-w-7xl relative ${data.settings?.sections?.portfolio === false ? 'section-hidden' : ''}`}>
+            
+            {isEditMode && (
+              <div className="absolute top-6 right-6 z-20">
+                <button onClick={() => toggleSection('portfolio')} className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border ${data.settings?.sections?.portfolio !== false ? 'bg-neutral-900/80 text-white border-white/20' : 'bg-red-500 text-white border-red-400'}`}>
+                  {data.settings?.sections?.portfolio !== false ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />} القسم
+                </button>
+              </div>
+            )}
+
+            <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6 mb-12 border-b border-white/5 pb-8">
+              <div>
+                <h2 className="text-3xl md:text-5xl lg:text-6xl font-black mb-4">معرض <span className="text-accent italic">الأعمال</span></h2>
+                <p className="text-base md:text-lg opacity-60">تصفح أحدث المشاريع والتصاميم المبتكرة.</p>
+              </div>
+              
+              {isEditMode && (
+                <button onClick={() => {
+                  setSelectedProject({ id: Date.now().toString(), title: "", category: "", description: "", thumbnail: null, gallery: [] });
+                  setActiveModal('project_edit');
+                }} className="flex items-center justify-center gap-2 px-6 py-4 bg-accent text-black hover:bg-white rounded-xl font-bold transition-all shadow-lg w-full md:w-auto">
+                  <Plus className="w-5 h-5" /> <span>إضافة مشروع جديد</span>
+                </button>
+              )}
+            </div>
+
+            {categories.length > 1 && (
+              <div className="flex flex-wrap gap-2 mb-10">
+                {categories.map(cat => (
+                  <button 
+                    key={cat} 
+                    onClick={() => setActiveCategory(cat)}
+                    className={`px-5 py-2 rounded-full text-sm font-bold transition-all border ${activeCategory === cat ? 'bg-accent text-black border-accent' : 'bg-[#111] text-white/70 border-white/10 hover:border-white/30'}`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {filteredProjects.map((project) => (
+                <div 
+                  key={project.id} 
+                  onClick={() => setActiveModal(`project_view_${project.id}`)}
+                  className="group relative overflow-hidden rounded-[2rem] bg-[#111] border border-white/5 aspect-[16/10] hover-lift cursor-pointer shadow-xl"
+                >
+                  {project.thumbnail ? (
+                    <img src={project.thumbnail} alt={project.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-80 group-hover:opacity-100" />
+                  ) : (
+                    <div className="w-full h-full bg-neutral-900 flex items-center justify-center"><ImageIcon className="w-16 h-16 opacity-20" /></div>
+                  )}
+                  
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent flex flex-col justify-end p-8">
+                    <span className="text-accent text-xs font-bold mb-2">{project.category}</span>
+                    <h3 className="text-2xl md:text-3xl font-black text-white">{project.title}</h3>
+                  </div>
+
+                  {isEditMode && (
+                    <div className="absolute top-4 right-4 z-20 flex gap-2" onClick={e => e.stopPropagation()}>
+                      <button onClick={() => { setSelectedProject(project); setActiveModal('project_edit'); }} className="p-3 bg-black/80 backdrop-blur-md text-white rounded-full hover:bg-accent hover:text-black transition-colors border border-white/10 shadow-lg">
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => confirmAction("حذف المشروع بالكامل؟", () => setData(prev => ({ ...prev, projects: prev.projects.filter(p => p.id !== project.id) })))} className="p-3 bg-red-500/90 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* 3. قسم التواصل */}
+        {(data.settings?.sections?.contact !== false || isEditMode) && (
+          <section className={`py-16 md:py-24 px-6 border-t border-white/5 container mx-auto max-w-6xl relative ${data.settings?.sections?.contact === false ? 'section-hidden' : ''}`}>
+            
+            {isEditMode && (
+              <div className="absolute top-6 right-6 z-20">
+                <button onClick={() => toggleSection('contact')} className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border ${data.settings?.sections?.contact !== false ? 'bg-neutral-900/80 text-white border-white/20' : 'bg-red-500 text-white border-red-400'}`}>
+                  {data.settings?.sections?.contact !== false ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />} القسم
+                </button>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+              <div>
+                <h2 className="text-3xl md:text-5xl font-black mb-4">دعنا نصنع <span className="text-accent italic">التميز</span></h2>
+                <p className="opacity-60 mb-8">مستعد للتعاون في مشروعك القادم؟ تواصل معي الآن.</p>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4 p-4 rounded-2xl bg-[#141414] border border-white/5">
+                    <Mail className="w-5 h-5 text-accent" />
+                    <ContentEditable html={data.profile?.email} onChange={(val) => updateProfile('email', val)} isEditMode={isEditMode} className="text-lg font-bold" />
+                  </div>
+                  
+                  <div className="flex items-center gap-4 p-4 rounded-2xl bg-[#141414] border border-white/5">
+                    <Phone className="w-5 h-5 text-accent" />
+                    <ContentEditable html={data.profile?.phone} onChange={(val) => updateProfile('phone', val)} isEditMode={isEditMode} className="text-lg font-bold" />
+                  </div>
+
+                  <div className="flex items-center gap-4 p-4 rounded-2xl bg-[#141414] border border-white/5">
+                    <MapPin className="w-5 h-5 text-accent" />
+                    <ContentEditable html={data.profile?.location} onChange={(val) => updateProfile('location', val)} isEditMode={isEditMode} className="text-lg font-bold" />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                  <span className="w-6 h-[2px] bg-accent"></span> تابعني عبر المنصات
+                </h3>
+                
+                <div className="flex flex-wrap gap-4">
+                  {data.social?.map(link => (
+                    <div key={link.id} className="relative group/social w-full sm:w-auto">
+                      <a href={link.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-[#141414] border border-white/5 hover:border-accent transition-all shadow-md">
+                        <i className={`${link.iconClass} text-xl text-accent`}></i>
+                        <span className="font-bold">{link.platform}</span>
+                      </a>
+                      
+                      {isEditMode && (
+                        <button 
+                          onClick={(e) => { e.preventDefault(); confirmAction("حذف هذا الرابط؟", () => setData(prev => ({ ...prev, social: prev.social.filter(s => s.id !== link.id) }))); }} 
+                          className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg z-10"
+                          title="حذف الرابط"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+
+                  {isEditMode && (
+                    <button 
+                      onClick={() => { setFormState({ platform: '', iconClass: 'fa-brands fa-tiktok', url: '' }); setActiveModal('social_add'); }} 
+                      className="flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-black border border-dashed border-white/20 text-neutral-400 hover:text-white hover:border-white transition-all w-full sm:w-auto"
+                    >
+                      <Plus className="w-5 h-5" />
+                      <span className="font-bold">إضافة منصة</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+      </main>
+
+      {/* 1. نافذة تفاصيل المشروع */}
+      {activeModal?.startsWith('project_view_') && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 bg-black/90 backdrop-blur-xl animate-in fade-in">
+          {(() => {
+            const proj = data.projects?.find(p => p.id === activeModal.replace('project_view_', ''));
+            if (!proj) return null;
+            return (
+              <div className="relative w-full max-w-5xl max-h-[90vh] bg-[#0d0d0e] border border-white/10 rounded-[2rem] overflow-hidden flex flex-col shadow-2xl">
+                <button onClick={() => setActiveModal(null)} className="absolute top-6 left-6 z-50 p-2.5 bg-black/60 rounded-full hover:bg-white hover:text-black transition-colors text-white border border-white/10">
+                  <X className="w-6 h-6" />
+                </button>
+
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-10 space-y-8">
+                  {proj.thumbnail && (
+                    <div className="w-full h-64 md:h-96 rounded-2xl overflow-hidden border border-white/10 shadow-lg">
+                      <img src={proj.thumbnail} alt={proj.title} className="w-full h-full object-cover" />
+                    </div>
+                  )}
+
+                  <div>
+                    {proj.category && <span className="inline-block px-3 py-1 bg-accent/20 text-accent rounded-full text-xs font-bold mb-3 border border-accent/20">{proj.category}</span>}
+                    <h2 className="text-3xl md:text-5xl font-black mb-4">{proj.title}</h2>
+                    <p className="text-neutral-300 text-lg leading-relaxed whitespace-pre-wrap">{proj.description}</p>
+                  </div>
+
+                  {proj.gallery && proj.gallery.length > 0 && (
+                    <div className="pt-6 border-t border-white/10">
+                      <h3 className="text-xl font-bold mb-6">معرض صور العمل ({proj.gallery.length})</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {proj.gallery.map((img, i) => (
+                          <div key={i} className="rounded-xl overflow-hidden border border-white/5 bg-[#141414]">
+                            <img src={img} alt={`Gallery ${i}`} className="w-full h-auto object-cover hover:scale-105 transition-transform duration-500" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* 2. نافذة تعديل بيانات المشروع */}
+      {activeModal === 'project_edit' && selectedProject && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+          <div className="bg-[#111] border border-white/10 rounded-[2rem] max-w-3xl w-full p-6 md:p-8 space-y-6 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div className="flex justify-between items-center border-b border-white/10 pb-4">
+              <h3 className="font-bold text-xl">{selectedProject.title ? 'تعديل المشروع' : 'إضافة مشروع جديد'}</h3>
+              <button onClick={() => setActiveModal(null)} className="p-2 bg-white/5 rounded-full hover:bg-white/10"><X className="w-5 h-5"/></button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-bold text-neutral-400 block mb-2">عنوان العمل *</label>
+                <input type="text" value={selectedProject.title} onChange={e => setSelectedProject({...selectedProject, title: e.target.value})} className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white focus:border-accent outline-none" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-neutral-400 block mb-2">التصنيف</label>
+                <input type="text" value={selectedProject.category} onChange={e => setSelectedProject({...selectedProject, category: e.target.value})} className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white focus:border-accent outline-none" placeholder="مثال: هوية بصرية، سوشيال ميديا" />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-neutral-400 block mb-2">وصف العمل</label>
+              <textarea rows={3} value={selectedProject.description} onChange={e => setSelectedProject({...selectedProject, description: e.target.value})} className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white focus:border-accent outline-none resize-none" placeholder="اكتب تفاصيل المشروع..." />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-neutral-400 block mb-2">صورة الغلاف (Thumbnail)</label>
+              <div className="flex flex-col md:flex-row gap-4 items-start">
+                {selectedProject.thumbnail && (
+                  <div className="relative w-44 aspect-video rounded-xl overflow-hidden border border-white/10 group">
+                    <img src={selectedProject.thumbnail} className="w-full h-full object-cover" alt="Cover" />
+                    <button onClick={() => setSelectedProject({...selectedProject, thumbnail: null})} className="absolute inset-0 bg-red-600/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white font-bold text-xs">حذف</button>
+                  </div>
+                )}
+                <label className="flex-1 w-full flex items-center justify-center gap-2 p-4 bg-black hover:bg-neutral-900 border border-dashed border-white/20 rounded-xl cursor-pointer transition-colors text-sm font-bold text-accent">
+                  <Upload className="w-4 h-4" /> <span>اختر صورة الغلاف من جهازك</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, (b64) => setSelectedProject({...selectedProject, thumbnail: b64}), 800, 800)} />
+                </label>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-white/10">
+              <div className="flex justify-between items-center mb-4">
+                <label className="text-sm font-bold text-white">معرض الصور الداخلي</label>
+                <label className="flex items-center gap-2 px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg cursor-pointer text-xs font-bold transition-colors">
+                  <Plus className="w-3.5 h-3.5 text-accent" /> <span>إضافة صورة للمعرض</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, (b64) => setSelectedProject({...selectedProject, gallery: [...(selectedProject.gallery || []), b64]}), 1200, 1200)} />
+                </label>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {(selectedProject.gallery || []).map((img, idx) => (
+                  <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-white/10 group">
+                    <img src={img} className="w-full h-full object-cover" alt="Gallery item" />
+                    <button onClick={() => setSelectedProject({...selectedProject, gallery: selectedProject.gallery.filter((_, i) => i !== idx)})} className="absolute inset-0 bg-red-600/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white">
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <button onClick={saveProject} className="w-full py-4 bg-accent text-black font-black text-base rounded-xl hover:brightness-110 transition-colors shadow-lg">حفظ كافة التغييرات</button>
+          </div>
+        </div>
+      )}
+
+      {/* 3. نافذة إضافة منصة تواصل */}
+      {activeModal === 'social_add' && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#111] border border-white/10 rounded-[2rem] w-full max-w-md p-6 md:p-8 shadow-2xl">
+            <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+              <h3 className="text-xl font-bold text-white">إضافة منصة تواصل</h3>
+              <button onClick={() => setActiveModal(null)} className="text-neutral-400 hover:text-white bg-white/5 p-2 rounded-full"><X className="w-5 h-5"/></button>
+            </div>
+            
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              setData(prev => ({
+                ...prev,
+                social: [...(prev.social || []), { id: Date.now().toString(), platform: formState.platform || "رابط", url: formState.url, iconClass: formState.iconClass || "fa-solid fa-link" }]
+              }));
+              setActiveModal(null);
+              showToast("تمت إضافة المنصة بنجاح");
+            }} className="space-y-5">
+              <div>
+                <label className="block text-xs font-bold text-neutral-400 mb-2">اسم المنصة</label>
+                <input required type="text" className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white focus:border-accent outline-none" placeholder="مثال: إنستغرام أو بينترست" onChange={e => setFormState({...formState, platform: e.target.value})} />
+              </div>
+              
+              <div>
+                <label className="block text-xs font-bold text-neutral-400 mb-2">اختر الأيقونة</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {SOCIAL_OPTIONS.map(opt => (
+                    <button key={opt.key} type="button" onClick={() => setFormState({...formState, iconClass: opt.class})} className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${formState.iconClass === opt.class ? 'bg-accent/20 border-accent text-accent' : 'bg-black border-white/10 text-neutral-400 hover:text-white'}`}>
+                      <i className={`${opt.class} text-xl mb-1`}></i>
+                      <span className="text-[10px]">{opt.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-neutral-400 mb-2">رابط الحساب (URL)</label>
+                <input required type="url" className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white text-left focus:border-accent outline-none" placeholder="https://..." onChange={e => setFormState({...formState, url: e.target.value})} dir="ltr" />
+              </div>
+
+              <button type="submit" className="w-full py-3.5 bg-accent text-black font-black text-base rounded-xl hover:brightness-110 transition-colors shadow-lg">إضافة المنصة</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* نافذة تأكيد الحذف */}
+      {confirmDialog && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#111] border border-white/10 rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl">
+            <AlertTriangle className="w-12 h-12 text-accent mx-auto mb-4" />
+            <p className="text-lg font-bold text-white mb-6">{confirmDialog.message}</p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmDialog(null)} className="flex-1 py-2.5 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-colors">إلغاء</button>
+              <button onClick={() => { confirmDialog.action(); setConfirmDialog(null); }} className="flex-1 py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors">تأكيد الحذف</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* التنبيهات */}
+      {toastMessage && (
+        <div className="fixed top-6 right-6 z-[200] px-5 py-3.5 rounded-2xl bg-[#181818] border border-white/20 text-white font-bold shadow-2xl flex items-center gap-3 backdrop-blur-md">
+          {toastMessage.type === 'error' ? <AlertTriangle className="w-5 h-5 text-red-500" /> : <Check className="w-5 h-5 text-accent" />}
+          <span>{toastMessage.message}</span>
+        </div>
+      )}
+
+    </div>
+  );
+}
