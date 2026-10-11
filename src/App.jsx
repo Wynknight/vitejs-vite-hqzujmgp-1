@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 
-// مكونات الأيقونات المدمجة (SVG) لضمان نجاح البناء في Vercel بدون مكاتب خارجية
+// أيقونات SVG مدمجة لضمان النشر السلس في Vercel دون مكاتب خارجية
 const Icon = ({ children, className = "w-5 h-5", ...props }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -41,7 +41,6 @@ const Palette = (p) => <Icon {...p}><circle cx="13.5" cy="6.5" r=".5" fill="curr
 const MessageCircle = (p) => <Icon {...p}><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></Icon>;
 const Download = (p) => <Icon {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></Icon>;
 
-// البيانات الافتراضية
 const DEFAULT_DATA = {
   profile: {
     name: "براءة <span style='color: var(--accent);'>يوسف</span>",
@@ -93,7 +92,7 @@ const DEFAULT_DATA = {
 };
 
 const SOCIAL_OPTIONS = [
-  { key: 'x-twitter', class: 'fa-brands fa-x-twitter', name: 'X (Twitter)' },
+  { key: 'x-twitter', class: 'fa-brands fa-x-twitter', name: 'X' },
   { key: 'tiktok', class: 'fa-brands fa-tiktok', name: 'TikTok' },
   { key: 'snapchat', class: 'fa-brands fa-snapchat', name: 'Snapchat' },
   { key: 'instagram', class: 'fa-brands fa-instagram', name: 'Instagram' },
@@ -243,7 +242,6 @@ export default function App() {
 
   const formatText = (command, value = null) => document.execCommand(command, false, value);
 
-  // دالة تصدير البيانات (تنزيل ملف JSON بحفظ Blob الصحيح والآمن للصور)
   const handleExportData = () => {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -257,7 +255,6 @@ export default function App() {
     showToast("تم تنزيل النسخة الاحتياطية data.json بنجاح");
   };
 
-  // استيراد البيانات من ملف JSON
   const handleImportData = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -291,7 +288,6 @@ export default function App() {
   return (
     <div dir="rtl" className="min-h-screen bg-[#070707] transition-colors duration-500 selection:bg-[var(--accent)] selection:text-black">
       
-      {/* تضمين الخطوط والتنسيقات */}
       <style dangerouslySetInnerHTML={{__html: `
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&family=Readex+Pro:wght@300;400;600;700&family=Tajawal:wght@300;400;500;700;800&display=swap');
         
@@ -327,14 +323,14 @@ export default function App() {
         .hover-lift:hover { transform: translateY(-8px); box-shadow: 0 15px 35px -10px var(--accent); }
       `}} />
 
-      {/* زر المعاينة السريعة والتبديل */}
+      {/* زر المعاينة السريعة */}
       <div className="fixed bottom-6 left-6 z-[100]">
         <button 
           onClick={() => { setIsEditMode(!isEditMode); setIsSettingsOpen(false); }}
           className={`flex items-center justify-center w-12 h-12 rounded-full shadow-2xl backdrop-blur-xl border transition-all duration-300 hover:scale-110 ${
             isEditMode ? 'bg-red-500/90 border-red-400 text-white' : 'bg-black/60 border-white/20 text-white/70 hover:text-white'
           }`}
-          title={isEditMode ? "معاينة كزائر (إخفاء أزرار التحرير)" : "تفعيل أدوات التحرير"}
+          title={isEditMode ? "معاينة كزائر" : "تفعيل التحرير"}
         >
           {isEditMode ? <Eye className="w-5 h-5" /> : <Edit3 className="w-5 h-5" />}
         </button>
@@ -353,7 +349,7 @@ export default function App() {
         </a>
       )}
 
-      {/* شريط أدوات التحرير وتلوين النصوص العلوي */}
+      {/* شريط أدوات التحرير العلوي */}
       {isEditMode && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-3 w-[92%] md:w-auto">
           <div className="bg-[#111]/95 backdrop-blur-xl border border-white/20 p-2 md:p-3 rounded-2xl flex flex-wrap items-center justify-center gap-2 md:gap-4 shadow-2xl">
@@ -420,7 +416,7 @@ export default function App() {
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold text-neutral-400 flex items-center gap-2 mb-3"><LayoutTemplate className="w-4 h-4"/> خلفية القسم الأول (Hero)</h3>
+              <h3 className="text-sm font-semibold text-neutral-400 flex items-center gap-2 mb-3"><LayoutTemplate className="w-4 h-4"/> خلفية القسم الأول</h3>
               <div className="bg-white/5 p-4 rounded-xl border border-white/5">
                 {data.settings?.heroBgImage && (
                   <div className="relative aspect-video rounded-xl overflow-hidden mb-3 border border-white/10 group">
@@ -439,9 +435,21 @@ export default function App() {
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold text-neutral-400 flex items-center gap-2 mb-2"><MessageCircle className="w-4 h-4"/> رقم الواتساب (لزر التواصل)</h3>
+              <h3 className="text-sm font-semibold text-neutral-400 flex items-center gap-2 mb-2"><MessageCircle className="w-4 h-4"/> رقم الواتساب</h3>
               <input type="text" value={data.settings?.whatsappNumber || ''} onChange={e => updateSettings('whatsappNumber', e.target.value)} placeholder="مثال: 966501234567" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-left focus:border-accent outline-none font-mono" dir="ltr" />
             </div>
 
             <div className="pt-6 border-t border-white/10 space-y-3">
-              <span className="text-xs font-bold text-neutral-400 block mb-2">إدارة وحفظ البيانات (
+              <span className="text-xs font-bold text-neutral-400 block mb-2">إدارة النسخ الاحتياطية والبيانات</span>
+              
+              <button onClick={handleExportData} className="w-full py-3 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 border border-white/10 transition">
+                <Download className="w-4 h-4 text-accent" />
+                تصدير البيانات وحفظ النسخة الاحتياطية
+              </button>
+
+              <button onClick={() => importFileRef.current?.click()} className="w-full py-3 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 border border-white/10 transition">
+                <Upload className="w-4 h-4 text-sky-400" />
+                استيراد البيانات من ملف محفوظ
+              </button>
+
+              <input type="file
